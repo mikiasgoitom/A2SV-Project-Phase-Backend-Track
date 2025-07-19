@@ -1,7 +1,7 @@
 package router
 
 import (
-	"task-management-api/data"
+	"task-management-api/controllers"
 
 	"github.com/gin-gonic/gin"
 )
@@ -9,11 +9,11 @@ import (
 func RunRouter() {
 	router := gin.Default()
 
-	router.GET("/tasks", data.GetAllTasks)
-	router.GET("/tasks/:id", data.GetTaskByID)
-	router.PUT("/tasks/:id", data.UpdateTask)
-	router.DELETE("/tasks/:id", data.DeleteTask)
-	router.POST("/tasks", data.CreateTask)
+	router.GET("/tasks", controllers.GetAllTasks)
+	router.GET("/tasks/:id", controllers.GetTaskByID)
+	router.PUT("/tasks/:id", controllers.UpdateTask)
+	router.DELETE("/tasks/:id", controllers.DeleteTask)
+	router.POST("/tasks", controllers.CreateTask)
 
 	router.Run("localhost:8080")
 }
