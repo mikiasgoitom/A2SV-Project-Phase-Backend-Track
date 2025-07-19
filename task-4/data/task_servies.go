@@ -1,86 +1,65 @@
 package data
 
 import (
-	"net/http"
+	"errors"
+	"strconv"
 	"task-management-api/models"
-
-	"github.com/gin-gonic/gin"
+	"time"
 )
 
-func GetAllTasks(c *gin.Context) {
-	if models.Tasks != nil {
-		c.IndentedJSON(http.StatusOK, models.Tasks)
-		return
-	}
-	c.IndentedJSON(http.StatusNotFound, gin.H{"message": "not tasks found"})
+var tasks = []models.Task{
+	{ID: "1", Title: "Task 1", Description: "First task", DueDate: time.Now(), Status: "Pending"},
+	{ID: "2", Title: "Task 2", Description: "Second task", DueDate: time.Now().AddDate(0, 0, 1), Status: "In Progress"},
+	{ID: "3", Title: "Task 3", Description: "Third task", DueDate: time.Now().AddDate(0, 0, 2), Status: "Completed"},
 }
 
-func GetTaskByID(c *gin.Context) {
-	id := c.Param("id")
+var tasksCount = 3
 
-	for _, task := range models.Tasks {
+func GetAllTasks() []models.Task {
+	return tasks
+}
+
+func GetTaskByID(id string) *models.Task {
+	for i, task := range tasks {
 		if task.ID == id {
-			c.IndentedJSON(http.StatusOK, task)
-			return
+			return &tasks[i]
 		}
 	}
-	c.IndentedJSON(http.StatusOK, gin.H{"message": "task not found"})
+	return nil
 }
 
-func UpdateTask(c *gin.Context) {
-	id := c.Param("id")
-	var updatedTask models.Task
-
-	if err := c.ShouldBindJSON(&updatedTask); err != nil {
-		c.IndentedJSON(http.StatusBadRequest, gin.H{"error: ": err.Error()})
-	}
-
-	for _, task := range models.Tasks {
-		if task.ID == id {
+func UpdateTask(id string, updatedTask models.Task) *models.Task {
+	for i := range tasks {
+		if tasks[i].ID == id {
 			if updatedTask.Title != "" {
-				task.Title = updatedTask.Title
+				tasks[i].Title = updatedTask.Title
 			}
 			if updatedTask.Description != "" {
-				task.Description = updatedTask.Description
+				tasks[i].Description = updatedTask.Description
 			}
 			if updatedTask.Status != "" {
-				task.Status = updatedTask.Status
+				tasks[i].Status = updatedTask.Status
 			}
-			c.IndentedJSON(http.StatusOK, task)
-			return
+			return &tasks[i]
 		}
 	}
-	c.IndentedJSON(http.StatusOK, gin.H{"message": "task not found"})
+	return nil
 }
 
-func DeleteTask(c *gin.Context) {
-	id := c.Param("id")
+func CreateTask(newTask models.Task) models.Task {
+	newTask.ID = strconv.Itoa(tasksCount + 1)
+	tasksCount += 1
+	tasks = append(tasks, newTask)
 
-	for i, task := range models.Tasks {
+	return newTask
+}
+
+func DeleteTask(id string) error {
+	for i, task := range tasks {
 		if task.ID == id {
-			models.Tasks = append(models.Tasks[:i], models.Tasks[i+1:]...)
-			return
+			tasks = append(tasks[:i], tasks[i+1:]...)
+			return nil
 		}
 	}
-	c.IndentedJSON(http.StatusOK, gin.H{"message": "task not found"})
-}
-
-/*
--GET /tasks: Get a list of all tasks.
--GET /tasks/:id: Get the details of a specific task.
--PUT /tasks/:id: Update a specific task. This endpoint should accept a JSON body with the new details of the task.
-- DELETE /tasks/:id: Delete a specific task.
-- POST /tasks: Create a new task. This endpoint should accept a JSON body with the task's title, description, due date, and status.
-*/
-
-func CreateTask(c *gin.Context) {
-	var newTask models.Task
-
-	if err := c.ShouldBindJSON(&newTask); err != nil {
-		c.IndentedJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	models.Tasks = append(models.Tasks, newTask)
-	c.IndentedJSON(http.StatusAccepted, gin.H{"message": "task created successfully"})
+	return errors.New("task not found")
 }
