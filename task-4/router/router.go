@@ -6,7 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func RunRouter() {
+func RunRouter() *gin.Engine {
 	router := gin.Default()
 
 	router.GET("/tasks", controllers.GetAllTasks)
@@ -15,5 +15,5 @@ func RunRouter() {
 	router.DELETE("/tasks/:id", controllers.DeleteTask)
 	router.POST("/tasks", controllers.CreateTask)
 
-	router.Run("localhost:8080")
+	return router
 }
